@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VocabCraft - English & Bengali Vocabulary Builder</title>
+  <meta name="description" content="Learn vocabulary by selecting words with automatic English <-> Bengali translation, dark mode, and TXT/Image export." />
+  <meta property="og:title" content="VocabCraft - Bilingual Vocabulary Builder" />
+  <meta property="og:description" content="Highlight words to build your vocabulary list in English & Bengali with instant export." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Google Fonts: Inter, Hind Siliguri (Smooth, Beautiful Bengali Font), Noto Sans Bengali -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            bengali: ['"Hind Siliguri"', '"Noto Sans Bengali"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- html2canvas for Image Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* Custom styling for ultra-smooth Bengali typography and transitions */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .bengali-text, [lang="bn"], .font-bengali {
+      font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif !important;
+      letter-spacing: 0.015em;
+      line-height: 1.65;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.4);
+      border-radius: 9999px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(107, 114, 128, 0.4);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.7);
+    }
+    /* Selection highlight style */
+    ::selection {
+      background: #10b981;
+      color: #ffffff;
+    }
+    .dark ::selection {
+      background: #059669;
+      color: #ffffff;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.95; transform: scale(1.02); }
+    }
+    .animate-pop {
+      animation: popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: translateY(4px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/90 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Logo & Branding -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">VocabCraft</span>
+            <span id="activeModeBadge" class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300/60 dark:border-emerald-700/50">
+              EN → BN
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Interactive Language & Vocabulary Learner</p>
+        </div>
+      </div>
+
+      <!-- Controls: Selection Mode, Language Switcher, Dark Mode -->
+      <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+        
+        <!-- Selection Behavior Setting: Auto-Add vs Ask First -->
+        <div class="flex items-center">
+          <div class="flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-1 shadow-inner text-xs">
+            <button
+              id="selectModeAutoBtn"
+              type="button"
+              onclick="setSelectionBehavior('auto')"
+              title="Word highlight করার সাথে সাথে সরাসরি যুক্ত হবে"
+              class="flex items-center gap-1 px-2 py-1 rounded-md transition-all font-semibold bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-xs"
+            >
+              <span>⚡</span>
+              <span class="hidden sm:inline">Auto-Add</span>
+              <span class="sm:hidden">Auto</span>
+            </button>
+            <button
+              id="selectModeAskBtn"
+              type="button"
+              onclick="setSelectionBehavior('ask')"
+              title="Word highlight করার পর অনুমতি নিয়ে যুক্ত হবে"
+              class="flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            >
+              <span>❓</span>
+              <span class="hidden sm:inline">Ask First</span>
+              <span class="sm:hidden">Ask</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Language Switcher -->
+        <div class="relative flex items-center">
+          <label for="languageSelect" class="sr-only">Learning Direction</label>
+          <div class="flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-1 shadow-inner">
+            <button id="modeEnToBnBtn" type="button" onclick="setLanguageMode('en-to-bn')" class="px-2.5 py-1 text-xs font-medium rounded-md transition-all bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm">
+              English → বাংলা
+            </button>
+            <button id="modeBnToEnBtn" type="button" onclick="setLanguageMode('bn-to-en')" class="px-2.5 py-1 text-xs font-medium rounded-md transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+              বাংলা → English
+            </button>
+          </div>
+        </div>
+
+        <!-- Dark Mode Toggle Button -->
+        <button id="themeToggleBtn" type="button" onclick="toggleDarkMode()" title="Toggle Dark/Light Mode" aria-label="Toggle Dark Mode" class="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition">
+          <!-- Sun Icon (shown in dark mode) -->
+          <svg id="sunIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <!-- Moon Icon (shown in light mode) -->
+          <svg id="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= SUB-BANNER / HELPER ================= -->
+  <div class="bg-emerald-500/10 border-b border-emerald-500/20 py-2 px-4 text-xs text-center text-emerald-800 dark:text-emerald-300">
+    <span class="font-semibold">💡 Tip:</span>
+    <span id="instructionText">Select or highlight any word in the left box with your mouse to instantly fetch its meaning and add it to your learning list.</span>
+  </div>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- ================= LEFT COLUMN: SOURCE TEXT AREA ================= -->
+      <section class="lg:col-span-7 flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+        
+        <!-- Column Header & Toolbars -->
+        <div class="p-4 border-b border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span id="sourceTitle">Source Reading Text</span>
+            </h2>
+            <p id="sourceSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Paste your English passage here and highlight unfamiliar words.
+            </p>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center gap-2 text-xs">
+            <button type="button" onclick="loadSampleText()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition shadow-xs">
+              <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+              Sample Text
+            </button>
+            <button type="button" onclick="pasteClipboard()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition shadow-xs">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Paste
+            </button>
+            <button type="button" onclick="clearSourceText()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 text-slate-700 dark:text-slate-300 font-medium transition shadow-xs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- The Text Area Container with Floating Selection Badge -->
+        <div class="relative p-4 flex-1">
+          <textarea
+            id="sourceTextArea"
+            rows="16"
+            class="w-full h-full min-h-[380px] sm:min-h-[460px] p-4 text-base sm:text-lg leading-relaxed bg-slate-50/50 dark:bg-slate-950/60 text-slate-900 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition resize-y font-normal"
+            placeholder="Paste or write your text here... Then simply select any word with your mouse!"
+          ></textarea>
+
+          <!-- Floating Selection Trigger Banner (appears when word is selected) -->
+          <div id="selectionPill" class="hidden absolute top-6 right-6 z-20 animate-pop">
+            <button id="addSelectionBtn" type="button" onclick="addSelectedWordNow()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-xl shadow-lg shadow-emerald-600/30 border border-emerald-400/40 transition">
+              <svg class="w-4 h-4 animate-spin hidden" id="pillSpinner" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <svg id="pillSparkle" class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>Add <strong id="selectedWordLabel" class="underline decoration-emerald-300 underline-offset-2">"word"</strong></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Text Statistics & Hint Bar -->
+        <div class="px-4 py-3 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-4">
+            <span>Words: <strong id="wordCountDisplay" class="text-slate-700 dark:text-slate-200 font-semibold">0</strong></span>
+            <span>Characters: <strong id="charCountDisplay" class="text-slate-700 dark:text-slate-200 font-semibold">0</strong></span>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
+            <span>Selection detection: <span class="text-emerald-500 font-medium">Active</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= RIGHT COLUMN: WORDS / LEARNING WORDS ================= -->
+      <section class="lg:col-span-5 flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+        
+        <!-- Header -->
+        <div class="p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                Words / Learning Words
+                <span id="savedCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
+                  0
+                </span>
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Captured words with meanings</p>
+            </div>
+          </div>
+
+          <!-- Quick Actions: POS (P), Sentence (S), View Toggle, Manual Add, Clear All -->
+          <div class="flex items-center gap-1.5">
+            <!-- P: Part of Speech Toggle Button -->
+            <button
+              id="togglePosBtn"
+              type="button"
+              onclick="togglePartOfSpeech()"
+              title="P: Part of Speech (noun, verb, adjective ইত্যাদি) দেখান/লুকান"
+              class="h-7 px-2 flex items-center justify-center rounded-lg border text-xs font-bold transition shadow-xs text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-500 hover:text-emerald-600 gap-1"
+            >
+              <span>P</span>
+              <span id="posIndicatorDot" class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+            </button>
+
+            <!-- S: Sentence Toggle Button -->
+            <button
+              id="toggleSentenceBtn"
+              type="button"
+              onclick="toggleSentences()"
+              title="S: ইংরেজি বাক্য (Sentence) ও বাংলা অর্থ দেখান/লুকান"
+              class="h-7 px-2 flex items-center justify-center rounded-lg border text-xs font-bold transition shadow-xs text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-500 hover:text-emerald-600 gap-1"
+            >
+              <span>S</span>
+              <span id="sentenceIndicatorDot" class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+            </button>
+
+            <button
+              id="viewModeToggleBtn"
+              type="button"
+              onclick="toggleListViewMode()"
+              title="কার্ড ভিউ এবং নরমাল টেক্সট ভিউ এর মাঝে পরিবর্তন করুন"
+              class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500 text-xs font-medium transition shadow-xs"
+            >
+              <svg id="viewCardsIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <svg id="viewTextIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <button type="button" onclick="openAddManualModal()" title="Add word manually" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500 text-xs font-medium transition shadow-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+            <button type="button" onclick="clearAllWords()" title="Clear word list" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-300 text-xs transition shadow-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Search / Filter Input (if list has words) -->
+        <div class="p-3 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900">
+          <div class="relative">
+            <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              id="searchWordsInput"
+              type="text"
+              oninput="handleSearchWords(this.value)"
+              placeholder="Search in saved words..."
+              class="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+        </div>
+
+        <!-- CAPTURABLE WORD LIST BOX (This is targeted by html2canvas for Image Download) -->
+        <div id="exportableWordListBox" class="p-4 flex-1 overflow-y-auto max-h-[460px] min-h-[340px] bg-white dark:bg-slate-900">
+          
+          <!-- Header visible during Image Export -->
+          <div id="exportBanner" class="hidden pb-4 mb-4 border-b border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">VocabCraft • Vocabulary Notes</h3>
+                <p id="exportBannerSub" class="text-xs text-slate-500">English ➔ Bengali Learning Words</p>
+              </div>
+              <span id="exportBannerDate" class="text-xs font-mono text-slate-400"></span>
+            </div>
+          </div>
+
+          <!-- The List of Word Cards -->
+          <div id="wordListContainer" class="space-y-2.5">
+            <!-- Dynamically populated word items -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyListState" class="py-12 px-4 flex flex-col items-center justify-center text-center">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 flex items-center justify-center mb-3">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">No words collected yet</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mb-4">
+              Highlight any word with your mouse from the left passage, or click below to enter one manually.
+            </p>
+            <button type="button" onclick="openAddManualModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Word Manually
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ================= EXPORT / DOWNLOAD FOOTER ================= -->
+        <div class="p-4 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-100 dark:border-slate-800/80">
+          <div class="grid grid-cols-2 gap-3">
+            
+            <!-- Download TXT Button -->
+            <button
+              id="downloadTxtBtn"
+              type="button"
+              onclick="downloadAsTxt()"
+              class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs sm:text-sm shadow-xs transition active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Download TXT</span>
+            </button>
+
+            <!-- Download Image Button -->
+            <button
+              id="downloadImgBtn"
+              type="button"
+              onclick="downloadAsImage()"
+              class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg id="imgBtnSpinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <svg id="imgBtnIcon" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span id="imgBtnText">Download Image</span>
+            </button>
+
+          </div>
+
+          <p class="text-[11px] text-center text-slate-400 dark:text-slate-500 mt-2">
+            Naming format: <span class="font-mono">[Date] ([Time]).ext</span>
+          </p>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= EDIT / MANUAL ADD MODAL ================= -->
+  <div id="wordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-pop">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modalTitle" class="text-base font-bold text-slate-900 dark:text-white">Add New Word</h3>
+        <button type="button" onclick="closeWordModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <form id="wordModalForm" onsubmit="handleModalSubmit(event)" class="space-y-4">
+        <input type="hidden" id="modalEditIndex" value="-1" />
+        
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label id="modalWordLabel" for="modalWordInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              Word
+            </label>
+            <input
+              type="text"
+              id="modalWordInput"
+              required
+              class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              placeholder="e.g. perseverance"
+            />
+          </div>
+          <div>
+            <label for="modalPosInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              Parts of Speech
+            </label>
+            <input
+              type="text"
+              id="modalPosInput"
+              class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              placeholder="noun / adj"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label id="modalMeaningLabel" for="modalMeaningInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+            Meaning (অর্থ)
+          </label>
+          <div class="relative">
+            <input
+              type="text"
+              id="modalMeaningInput"
+              required
+              class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              placeholder="e.g. অধ্যবসায় / দৃঢ়তা"
+            />
+            <button type="button" onclick="fetchMeaningForModal()" title="Auto translate with online API" class="absolute right-2 top-2 px-2 py-0.5 rounded text-[11px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-semibold hover:bg-emerald-200 transition">
+              Auto Fetch
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label for="modalSentenceInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+            Example Sentence (ইংরেজি বাক্য)
+          </label>
+          <input
+            type="text"
+            id="modalSentenceInput"
+            class="w-full px-3.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+            placeholder="e.g. Through perseverance, she achieved her goals."
+          />
+        </div>
+
+        <div>
+          <label for="modalSentenceBnInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+            Sentence Meaning (বাক্যের বাংলা অর্থ)
+          </label>
+          <input
+            type="text"
+            id="modalSentenceBnInput"
+            class="w-full px-3.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-hidden bengali-text"
+            placeholder="e.g. অধ্যবসায়ের মাধ্যমে তিনি তার লক্ষ্য অর্জন করেছিলেন।"
+          />
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeWordModal()" class="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">
+            Save Word
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-12 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xl text-xs font-medium border border-slate-700 dark:border-slate-200">
+      <span id="toastIcon">✨</span>
+      <span id="toastMsg">Word added successfully</span>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // --- State Management ---
+    let currentMode = localStorage.getItem('vocab_mode') || 'en-to-bn'; // 'en-to-bn' | 'bn-to-en'
+    let selectionBehavior = localStorage.getItem('vocab_selection_behavior') || 'auto'; // 'auto' | 'ask'
+    let listViewMode = localStorage.getItem('vocab_list_view_mode') || 'cards'; // 'cards' | 'plain'
+    let showSentences = localStorage.getItem('vocab_show_sentences') === 'true'; // Toggle S
+    let showPartOfSpeech = localStorage.getItem('vocab_show_pos') === 'true'; // Toggle P
+    let words = [];
+    let activeFilter = '';
+    let lastSelectedText = '';
+    let isAddingWord = false;
+    let lastProcessedSelection = '';
+
+    // Sample passages
+    const samplePassages = {
+      'en-to-bn': `The serendipity of discovering ancient manuscripts often fills researchers with profound euphoria. Their relentless perseverance and intellectual tenacity illuminate forgotten chapters of civilization. Such resilient scholars scrutinize each delicate parchment with extraordinary meticulousness, unearthing wisdom that resonates across centuries.`,
+      'bn-to-en': `প্রকৃতির অপরূপ সৌন্দর্য আমাদের মনে গভীর প্রশান্তি সৃষ্টি করে। নদীর শান্ত প্রবাহ এবং পাখির মধুর কলকাকলি জীবনের ক্লান্তিকে দূর করে দেয়। মানুষের অধ্যবসায় ও দৃঢ় প্রত্যয় সব কঠিন বাধাকে অতিক্রম করতে সাহায্য করে। এই অনন্য অনুভূতি আমাদের চেতনায় চিরভাস্বর হয়ে থাকে।`
+    };
+
+    // Built-in curated bilingual vocabulary dictionary with Parts of Speech (POS) & Example Sentences
+    const offlineDictionary = {
+      // English -> Bengali
+      'work': {
+        meaning: 'কাজ / পরিশ্রম',
+        pos: 'noun / verb',
+        sentence: 'Hard work leads to genuine achievement.',
+        sentenceBn: 'কঠোর পরিশ্রম প্রকৃত অর্জনের দিকে নিয়ে যায়।'
+      },
+      'life': {
+        meaning: 'জীবন',
+        pos: 'noun',
+        sentence: 'Life is a precious journey full of experiences.',
+        sentenceBn: 'জীবন অভিজ্ঞতায় ভরা এক মূল্যবান যাত্রা।'
+      },
+      'serendipity': {
+        meaning: 'আকস্মিক সৌভাগ্য / অপ্রত্যাশিত শুভ আবিষ্কার',
+        pos: 'noun',
+        sentence: 'Finding this rare manuscript was pure serendipity.',
+        sentenceBn: 'এই দুর্লভ পাণ্ডুলিপিটি খুঁজে পাওয়া ছিল নিখাদ এক আকস্মিক সৌভাগ্য।'
+      },
+      'perseverance': {
+        meaning: 'অধ্যবসায় / অবিচল নিষ্ঠা',
+        pos: 'noun',
+        sentence: 'Through perseverance, she achieved her highest goals.',
+        sentenceBn: 'অধ্যবসায়ের মাধ্যমে তিনি তার সর্বোচ্চ লক্ষ্য অর্জন করেছিলেন।'
+      },
+      'tenacity': {
+        meaning: 'দৃঢ়তা / একনিষ্ঠতা',
+        pos: 'noun',
+        sentence: 'His tenacity helped him overcome every difficult obstacle.',
+        sentenceBn: 'তার দৃঢ়তা তাকে প্রতিটি কঠিন বাধা অতিক্রম করতে সাহায্য করেছিল।'
+      },
+      'euphoria': {
+        meaning: 'চরম আনন্দ / উল্লাস',
+        pos: 'noun',
+        sentence: 'The victory filled the entire team with immense euphoria.',
+        sentenceBn: 'এই বিজয় পুরো দলকে এক চরম আনন্দে ভাসিয়ে দিয়েছিল।'
+      },
+      'meticulousness': {
+        meaning: 'নিখুঁত সতর্কতা / পুঙ্খানুপুঙ্খতা',
+        pos: 'noun',
+        sentence: 'He planned every step with extraordinary meticulousness.',
+        sentenceBn: 'তিনি অসাধারণ নিখুঁত সতর্কতার সাথে প্রতিটি পদক্ষেপ পরিকল্পনা করেছিলেন।'
+      },
+      'parchment': {
+        meaning: 'চর্মপত্র / প্রাচীন পাণ্ডুলিপি',
+        pos: 'noun',
+        sentence: 'The historian examined the ancient parchment carefully.',
+        sentenceBn: 'ঐতিহাসিক প্রাচীন চর্মপত্রটি অত্যন্ত সতর্কতার সাথে পরীক্ষা করলেন।'
+      },
+      'scrutinize': {
+        meaning: 'সূক্ষ্মভাবে পরীক্ষা করা',
+        pos: 'verb',
+        sentence: 'Scholars scrutinize each ancient line with deep focus.',
+        sentenceBn: 'পণ্ডিতরা গভীর মনোযোগ দিয়ে প্রতিটি প্রাচীন লাইন সূক্ষ্মভাবে পরীক্ষা করেন।'
+      },
+      'resilient': {
+        meaning: 'সহনশীল / ঘুরে দাঁড়াতে সক্ষম',
+        pos: 'adjective',
+        sentence: 'Resilient minds stay strong even in difficult times.',
+        sentenceBn: 'সহনশীল মানসিকতা কঠিন সময়েও দৃঢ় থাকে।'
+      },
+      'profound': {
+        meaning: 'গভীর / সুদূরপ্রসারী',
+        pos: 'adjective',
+        sentence: 'His words left a profound impact on my thinking.',
+        sentenceBn: 'তার কথাগুলো আমার চিন্তাভাবনায় এক গভীর প্রভাব ফেলেছিল।'
+      },
+      'illuminate': {
+        meaning: 'আলোকিত করা / সুস্পষ্ট করা',
+        pos: 'verb',
+        sentence: 'New discoveries illuminate forgotten chapters of history.',
+        sentenceBn: 'নতুন আবিষ্কারগুলো ইতিহাসের বিস্মৃত অধ্যায়গুলোকে আলোকিত করে।'
+      },
+      'civilization': {
+        meaning: 'সভ্যতা',
+        pos: 'noun',
+        sentence: 'The roots of civilization go back thousands of years.',
+        sentenceBn: 'সভ্যতার শিকড় হাজার হাজার বছর পেছনের দিকে বিস্তৃত।'
+      },
+      'resonate': {
+        meaning: 'প্রতিধ্বনিত হওয়া / দাগ কাটা',
+        pos: 'verb',
+        sentence: 'Truth and justice resonate across every generation.',
+        sentenceBn: 'সত্য এবং ন্যায়বিচার প্রতিটি প্রজন্মের মনে দাগ কাটে।'
+      },
+      'wisdom': {
+        meaning: 'প্রজ্ঞা / জ্ঞান',
+        pos: 'noun',
+        sentence: 'True wisdom comes from experience and reflection.',
+        sentenceBn: 'প্রকৃত প্রজ্ঞা আসে অভিজ্ঞতা এবং অন্তর্দৃষ্টি থেকে।'
+      },
+      'ancient': {
+        meaning: 'প্রাচীন / পুরাতন',
+        pos: 'adjective',
+        sentence: 'They explored the ancient temple in the forest.',
+        sentenceBn: 'তারা বনের ভেতরের প্রাচীন মন্দিরটি অন্বেষণ করেছিল।'
+      },
+      'relentless': {
+        meaning: 'অবিরাম / নিরলস',
+        pos: 'adjective',
+        sentence: 'Relentless practice brings effortless mastery.',
+        sentenceBn: 'নিরলস অনুশীলন অনায়াস দক্ষতা এনে দেয়।'
+      },
+      'ephemeral': {
+        meaning: 'ক্ষণস্থায়ী / ক্ষণভঙ্গুর',
+        pos: 'adjective',
+        sentence: 'The beauty of a blossom is ephemeral yet unforgettable.',
+        sentenceBn: 'ফুলের সৌন্দর্য ক্ষণস্থায়ী হলেও অবিস্মরণীয়।'
+      },
+      'knowledge': {
+        meaning: 'জ্ঞান',
+        pos: 'noun',
+        sentence: 'Knowledge is the strongest foundation for personal growth.',
+        sentenceBn: 'জ্ঞান হলো ব্যক্তিগত উন্নতির সবচেয়ে শক্তিশালী ভিত্তি।'
+      },
+      'courage': {
+        meaning: 'সাহস',
+        pos: 'noun',
+        sentence: 'It takes real courage to speak the truth.',
+        sentenceBn: 'সত্য প্রকাশ করতে প্রকৃত সাহসের প্রয়োজন।'
+      },
+      'freedom': {
+        meaning: 'স্বাধীনতা',
+        pos: 'noun',
+        sentence: 'Freedom empowers people to live with self-respect.',
+        sentenceBn: 'স্বাধীনতা মানুষকে আত্মমর্যাদার সাথে বাঁচার ক্ষমতা দেয়।'
+      },
+      'harmony': {
+        meaning: 'সম্প্রীতি / মেলবন্ধন',
+        pos: 'noun',
+        sentence: 'Living in harmony brings lasting peace to society.',
+        sentenceBn: 'সম্প্রীতির সাথে বসবাস সমাজে দীর্ঘস্থায়ী শান্তি নিয়ে আসে।'
+      },
+
+      // Bengali -> English
+      'কাজ': {
+        meaning: 'Work / Task / Labor',
+        pos: 'noun / verb',
+        sentence: 'Honest work brings deep inner satisfaction.',
+        sentenceBn: 'সৎ কাজ মনে গভীর আত্মতৃপ্তি এনে দেয়।'
+      },
+      'জীবন': {
+        meaning: 'Life / Existence',
+        pos: 'noun',
+        sentence: 'Life is filled with unexpected beauty and hope.',
+        sentenceBn: 'জীবন অপ্রত্যাশিত সৌন্দর্য এবং আশায় পরিপূর্ণ।'
+      },
+      'সৌন্দর্য': {
+        meaning: 'Beauty / Splendor',
+        pos: 'noun',
+        sentence: 'The quiet beauty of nature restores inner peace.',
+        sentenceBn: 'প্রকৃতির শান্ত সৌন্দর্য মনের ভেতরের শান্তি ফিরিয়ে দেয়।'
+      },
+      'প্রশান্তি': {
+        meaning: 'Tranquility / Serenity',
+        pos: 'noun',
+        sentence: 'The calm breeze brought profound tranquility to all.',
+        sentenceBn: 'শান্ত বাতাস সবার মনে এক গভীর প্রশান্তি বয়ে এনেছিল।'
+      },
+      'প্রবাহ': {
+        meaning: 'Flow / Current',
+        pos: 'noun',
+        sentence: 'The smooth flow of the stream continued into the night.',
+        sentenceBn: 'ঝরনার সাবলীল প্রবাহ রাতভর বয়ে চলছিল।'
+      },
+      'ক্লান্তি': {
+        meaning: 'Fatigue / Exhaustion',
+        pos: 'noun',
+        sentence: 'A good rest helps wash away every trace of fatigue.',
+        sentenceBn: 'একটি ভালো বিশ্রাম সব ক্লান্তি দূর করতে সাহায্য করে।'
+      },
+      'অধ্যবসায়': {
+        meaning: 'Perseverance / Diligence',
+        pos: 'noun',
+        sentence: 'Perseverance will eventually turn difficulties into victories.',
+        sentenceBn: 'অধ্যবসায় শেষ পর্যন্ত বাধাকে বিজয়ে রূপান্তরিত করবে।'
+      },
+      'প্রত্যয়': {
+        meaning: 'Conviction / Firm belief',
+        pos: 'noun',
+        sentence: 'She stood by her convictions with unwavering integrity.',
+        sentenceBn: 'তিনি অবিচল সততার সাথে তার প্রত্যয়ে অটল ছিলেন।'
+      },
+      'অনন্য': {
+        meaning: 'Unique / Exceptional',
+        pos: 'adjective',
+        sentence: 'Every human being possesses a unique set of talents.',
+        sentenceBn: 'প্রতিটি মানুষেরই কিছু অনন্য প্রতিভা রয়েছে।'
+      },
+      'অনুভূতি': {
+        meaning: 'Feeling / Emotion',
+        pos: 'noun',
+        sentence: 'Kindness awakens the warmest feelings in our hearts.',
+        sentenceBn: 'দয়াশীলতা আমাদের অন্তরে সবচেয়ে উষ্ণ অনুভূতি জাগিয়ে তোলে।'
+      },
+      'প্রকৃতি': {
+        meaning: 'Nature',
+        pos: 'noun',
+        sentence: 'We must live in friendship and balance with nature.',
+        sentenceBn: 'আমাদের প্রকৃতির সাথে বন্ধুত্ব ও ভারসাম্যের মধ্যে বাঁচতে হবে।'
+      },
+      'স্বপ্ন': {
+        meaning: 'Dream / Aspiration',
+        pos: 'noun',
+        sentence: 'Hold on to dreams, for they inspire great beginnings.',
+        sentenceBn: 'স্বপ্নকে ধরে রাখুন, কারণ তারা মহান শুরুর অনুপ্রেরণা জোগায়।'
+      },
+      'শান্তি': {
+        meaning: 'Peace / Harmony',
+        pos: 'noun',
+        sentence: 'Peace begins with mutual understanding and empathy.',
+        sentenceBn: 'পারস্পরিক বোঝাপড়া এবং সহমর্মিতার মাধ্যমেই শান্তির সূচনা হয়।'
+      }
+    };
+
+    // --- DOM Elements ---
+    const sourceTextArea = document.getElementById('sourceTextArea');
+    const wordListContainer = document.getElementById('wordListContainer');
+    const emptyListState = document.getElementById('emptyListState');
+    const savedCountBadge = document.getElementById('savedCountBadge');
+    const wordCountDisplay = document.getElementById('wordCountDisplay');
+    const charCountDisplay = document.getElementById('charCountDisplay');
+    const selectionPill = document.getElementById('selectionPill');
+    const selectedWordLabel = document.getElementById('selectedWordLabel');
+    const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+    const downloadImgBtn = document.getElementById('downloadImgBtn');
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      loadStoredWords();
+      setLanguageMode(currentMode, false);
+      setSelectionBehavior(selectionBehavior, false);
+      updateListViewModeIcons();
+      updatePosButtonState();
+      updateSentenceButtonState();
+      setupSelectionListeners();
+      updateTextStats();
+
+      // If textarea is empty, load the initial sample
+      if (!sourceTextArea.value.trim()) {
+        sourceTextArea.value = samplePassages[currentMode];
+        updateTextStats();
+      }
+    });
+
+    // --- Selection Behavior Setting (Auto-Add vs Ask First) ---
+    function setSelectionBehavior(behavior, notify = true) {
+      selectionBehavior = behavior;
+      localStorage.setItem('vocab_selection_behavior', behavior);
+
+      const autoBtn = document.getElementById('selectModeAutoBtn');
+      const askBtn = document.getElementById('selectModeAskBtn');
+
+      if (autoBtn && askBtn) {
+        if (behavior === 'auto') {
+          autoBtn.className = "flex items-center gap-1 px-2 py-1 rounded-md transition-all font-semibold bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-xs";
+          askBtn.className = "flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+          if (notify) showToast('⚡ Auto-Add সক্রিয়: শব্দ সিলেক্ট করলেই সাথে সাথে যুক্ত হবে', '⚡');
+        } else {
+          askBtn.className = "flex items-center gap-1 px-2 py-1 rounded-md transition-all font-semibold bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-xs";
+          autoBtn.className = "flex items-center gap-1 px-2 py-1 rounded-md transition-all font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+          if (notify) showToast('❓ Ask First সক্রিয়: শব্দ সিলেক্ট করার পর অনুমতি চাইবে', '❓');
+        }
+      }
+
+      updateInstructionText();
+    }
+
+    function updateInstructionText() {
+      const instructionText = document.getElementById('instructionText');
+      if (!instructionText) return;
+
+      if (selectionBehavior === 'auto') {
+        if (currentMode === 'en-to-bn') {
+          instructionText.textContent = "⚡ Auto-Add Active: Highlight any English word to automatically fetch its Bengali meaning & add to list!";
+        } else {
+          instructionText.textContent = "⚡ Auto-Add সক্রিয়: যেকোনো বাংলা শব্দ সিলেক্ট করলেই সাথে সাথে ইংরেজি অর্থসহ যুক্ত হবে!";
+        }
+      } else {
+        if (currentMode === 'en-to-bn') {
+          instructionText.textContent = "❓ Ask Mode: Highlight any English word, then click the Add button to fetch its meaning.";
+        } else {
+          instructionText.textContent = "❓ Ask সক্রিয়: যেকোনো বাংলা শব্দ সিলেক্ট করার পর অনুমতি নিয়ে যুক্ত হবে।";
+        }
+      }
+    }
+
+    // --- List View Mode Toggle (Cards vs Normal Text View) ---
+    function toggleListViewMode() {
+      listViewMode = listViewMode === 'cards' ? 'plain' : 'cards';
+      localStorage.setItem('vocab_list_view_mode', listViewMode);
+      updateListViewModeIcons();
+      renderWordList();
+      showToast(listViewMode === 'plain' ? '📄 নরমাল টেক্সট ভিউ সক্রিয়' : '🃏 কার্ড ভিউ সক্রিয়', '👁️');
+    }
+
+    function updateListViewModeIcons() {
+      const cardsIcon = document.getElementById('viewCardsIcon');
+      const textIcon = document.getElementById('viewTextIcon');
+      const btn = document.getElementById('viewModeToggleBtn');
+      if (cardsIcon && textIcon) {
+        if (listViewMode === 'plain') {
+          cardsIcon.classList.remove('hidden');
+          textIcon.classList.add('hidden');
+          if (btn) btn.title = "কার্ড ভিউতে পরিবর্তন করুন";
+        } else {
+          cardsIcon.classList.add('hidden');
+          textIcon.classList.remove('hidden');
+          if (btn) btn.title = "নরমাল টেক্সট ভিউতে পরিবর্তন করুন (Word File Style)";
+        }
+      }
+    }
+
+    // --- Part of Speech (P) Toggle ---
+    function togglePartOfSpeech() {
+      showPartOfSpeech = !showPartOfSpeech;
+      localStorage.setItem('vocab_show_pos', showPartOfSpeech ? 'true' : 'false');
+      updatePosButtonState();
+      renderWordList();
+      showToast(showPartOfSpeech ? 'P: Parts of Speech (পদ) প্রদর্শিত হচ্ছে' : 'P: Parts of Speech লুকানো হয়েছে', '🏷️');
+    }
+
+    function updatePosButtonState() {
+      const btn = document.getElementById('togglePosBtn');
+      const dot = document.getElementById('posIndicatorDot');
+      if (!btn) return;
+      if (showPartOfSpeech) {
+        btn.className = "h-7 px-2 flex items-center justify-center rounded-lg border text-xs font-bold transition shadow-xs bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500 dark:border-emerald-500 gap-1 shadow-sm";
+        btn.title = "P: Parts of Speech চালু আছে (ক্লিক করে লুকান)";
+        if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-white";
+      } else {
+        btn.className = "h-7 px-2 flex items-center justify-center rounded-lg border text-xs font-bold transition shadow-xs text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-500 hover:text-emerald-600 gap-1";
+        btn.title = "P: Parts of Speech বন্ধ আছে (ক্লিক করে চালু করুন)";
+        if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600";
+      }
+    }
+
+    // --- Example Sentence (S) Toggle ---
+    function toggleSentences() {
+      showSentences = !showSentences;
+      localStorage.setItem('vocab_show_sentences', showSentences ? 'true' : 'false');
+      updateSentenceButtonState();
+      renderWordList();
+      showToast(showSentences ? 'S: বাক্য (Sentence) প্রদর্শিত হচ্ছে' : 'S: বাক্য লুকানো হয়েছে', '💡');
+    }
+
+    function updateSentenceButtonState() {
+      const btn = document.getElementById('toggleSentenceBtn');
+      const dot = document.getElementById('sentenceIndicatorDot');
+      if (!btn) return;
+      if (showSentences) {
+        btn.className = "h-7 px-2 flex items-center justify-center rounded-lg border text-xs font-bold transition shadow-xs bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500 dark:border-emerald-500 gap-1 shadow-sm";
+        btn.title = "S: ইংরেজি বাক্য ও অর্থ চালু আছে (ক্লিক করে লুকান)";
+        if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-white";
+      } else {
+        btn.className = "h-7 px-2 flex items-center justify-center rounded-lg border text-xs font-bold transition shadow-xs text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-500 hover:text-emerald-600 gap-1";
+        btn.title = "S: ইংরেজি বাক্য বন্ধ আছে (ক্লিক করে চালু করুন)";
+        if (dot) dot.className = "w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600";
+      }
+    }
+
+    // --- Theme Management ---
+    function initTheme() {
+      const savedTheme = localStorage.getItem('vocab_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        updateThemeIcons(true);
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        updateThemeIcons(false);
+      }
+    }
+
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        localStorage.setItem('vocab_theme', 'light');
+        updateThemeIcons(false);
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        localStorage.setItem('vocab_theme', 'dark');
+        updateThemeIcons(true);
+      }
+    }
+
+    function updateThemeIcons(isDark) {
+      const sun = document.getElementById('sunIcon');
+      const moon = document.getElementById('moonIcon');
+      if (isDark) {
+        sun.classList.remove('hidden');
+        moon.classList.add('hidden');
+      } else {
+        sun.classList.add('hidden');
+        moon.classList.remove('hidden');
+      }
+    }
+
+    // --- Language Mode Toggle ---
+    function setLanguageMode(mode, reloadSampleIfEmpty = true) {
+      currentMode = mode;
+      localStorage.setItem('vocab_mode', mode);
+
+      const enBtn = document.getElementById('modeEnToBnBtn');
+      const bnBtn = document.getElementById('modeBnToEnBtn');
+      const activeBadge = document.getElementById('activeModeBadge');
+      const sourceTitle = document.getElementById('sourceTitle');
+      const sourceSubtitle = document.getElementById('sourceSubtitle');
+      const instructionText = document.getElementById('instructionText');
+
+      if (mode === 'en-to-bn') {
+        enBtn.className = "px-2.5 py-1 text-xs font-semibold rounded-md transition-all bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs";
+        bnBtn.className = "px-2.5 py-1 text-xs font-medium rounded-md transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+        activeBadge.textContent = "EN → BN";
+        sourceTitle.textContent = "Source Reading Text (English)";
+        sourceSubtitle.textContent = "Paste your English passage here and highlight unfamiliar words.";
+        sourceTextArea.placeholder = "Paste English text here... Highlight any English word with your mouse to get Bengali meaning!";
+        sourceTextArea.className = sourceTextArea.className.replace('bengali-text', '');
+      } else {
+        bnBtn.className = "px-2.5 py-1 text-xs font-semibold rounded-md transition-all bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs";
+        enBtn.className = "px-2.5 py-1 text-xs font-medium rounded-md transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+        activeBadge.textContent = "BN → EN";
+        sourceTitle.textContent = "মূল পাঠ্য (বাংলা)";
+        sourceSubtitle.textContent = "এখানে বাংলা অনুচ্ছেদ লিখুন বা পেস্ট করুন এবং যেকোনো শব্দ নির্বাচন করুন।";
+        sourceTextArea.placeholder = "এখানে বাংলা লেখা পেস্ট করুন... মাউস দিয়ে যেকোনো বাংলা শব্দ সিলেক্ট করলেই ইংরেজি অর্থ যুক্ত হবে!";
+        if (!sourceTextArea.className.includes('bengali-text')) {
+          sourceTextArea.className += ' bengali-text';
+        }
+      }
+
+      updateInstructionText();
+
+      if (reloadSampleIfEmpty && !sourceTextArea.value.trim()) {
+        sourceTextArea.value = samplePassages[mode];
+        updateTextStats();
+      }
+    }
+
+    // --- Clipboard & Text Operations ---
+    async function pasteClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          sourceTextArea.value = text;
+          updateTextStats();
+          showToast('Text pasted from clipboard!', '📋');
+        }
+      } catch (err) {
+        showToast('Please press Ctrl+V / Cmd+V to paste manually', 'ℹ️');
+      }
+    }
+
+    function clearSourceText() {
+      if (confirm('Clear the source text area?')) {
+        sourceTextArea.value = '';
+        updateTextStats();
+        hideSelectionPill();
+      }
+    }
+
+    function loadSampleText() {
+      sourceTextArea.value = samplePassages[currentMode];
+      updateTextStats();
+      showToast('Loaded sample reading passage', '📖');
+    }
+
+    function updateTextStats() {
+      const text = sourceTextArea.value.trim();
+      const chars = sourceTextArea.value.length;
+      const wordsCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
+      wordCountDisplay.textContent = wordsCount;
+      charCountDisplay.textContent = chars;
+    }
+
+    sourceTextArea.addEventListener('input', updateTextStats);
+
+    // --- Selection Detection & Handling ---
+    function setupSelectionListeners() {
+      // Mouseup & Touchend on textarea to catch highlights
+      sourceTextArea.addEventListener('mouseup', handleTextSelection);
+      sourceTextArea.addEventListener('keyup', handleTextSelection);
+      sourceTextArea.addEventListener('touchend', handleTextSelection);
+
+      // Hide pill when clicking outside
+      document.addEventListener('mousedown', (e) => {
+        if (!selectionPill.contains(e.target) && e.target !== sourceTextArea) {
+          hideSelectionPill();
+        }
+      });
+    }
+
+    function cleanWordSelection(str) {
+      if (!str) return '';
+      // Trim whitespaces and punctuation like commas, periods, quotes, brackets, question marks
+      return str.trim()
+        .replace(/^[\s"“'’‘(\[{«—]+/, '')
+        .replace(/[\s"”'’‘)\]}»!?:;.,—।]+$/, '')
+        .trim();
+    }
+
+    function handleTextSelection() {
+      const start = sourceTextArea.selectionStart;
+      const end = sourceTextArea.selectionEnd;
+
+      if (typeof start === 'number' && typeof end === 'number' && start !== end) {
+        const rawSelected = sourceTextArea.value.substring(start, end);
+        const cleaned = cleanWordSelection(rawSelected);
+
+        // Check if selection is a sensible word or short phrase (up to 5 words)
+        if (cleaned.length > 0 && cleaned.split(/\s+/).length <= 5) {
+          lastSelectedText = cleaned;
+
+          if (selectionBehavior === 'auto') {
+            hideSelectionPill();
+            triggerAutoAddWord(cleaned);
+            return;
+          } else {
+            showSelectionPill(cleaned);
+            return;
+          }
+        }
+      }
+      hideSelectionPill();
+    }
+
+    // Auto-Add mechanism: Triggered instantly on word selection without prompt
+    async function triggerAutoAddWord(word) {
+      if (isAddingWord) return;
+      if (lastProcessedSelection.toLowerCase() === word.toLowerCase()) return;
+
+      isAddingWord = true;
+      lastProcessedSelection = word;
+
+      showToast(`Looking up "${word}"...`, '⚡');
+
+      try {
+        const details = await getWordDetails(word, currentMode);
+        if (details && details.meaning) {
+          saveWord(word, details.meaning, currentMode, details.pos, details.sentence, details.sentenceBn);
+          const posLabel = details.pos ? ` (${details.pos})` : '';
+          showToast(`যুক্ত হয়েছে: ${word}${posLabel} - ${details.meaning}`, '✅');
+        }
+      } catch (err) {
+        console.error('Translation error:', err);
+        openAddManualModal(word, '');
+      } finally {
+        isAddingWord = false;
+        setTimeout(() => {
+          lastProcessedSelection = '';
+        }, 1200);
+      }
+    }
+
+    function showSelectionPill(word) {
+      selectedWordLabel.textContent = `"${word}"`;
+      selectionPill.classList.remove('hidden');
+    }
+
+    function hideSelectionPill() {
+      selectionPill.classList.add('hidden');
+      const spinner = document.getElementById('pillSpinner');
+      const sparkle = document.getElementById('pillSparkle');
+      if (spinner && sparkle) {
+        spinner.classList.add('hidden');
+        sparkle.classList.remove('hidden');
+      }
+    }
+
+    // When the user clicks "Add [word]" in Ask First mode
+    async function addSelectedWordNow() {
+      if (!lastSelectedText) return;
+      const word = lastSelectedText;
+      const spinner = document.getElementById('pillSpinner');
+      const sparkle = document.getElementById('pillSparkle');
+      
+      if (spinner && sparkle) {
+        spinner.classList.remove('hidden');
+        sparkle.classList.add('hidden');
+      }
+
+      try {
+        const details = await getWordDetails(word, currentMode);
+        saveWord(word, details.meaning, currentMode, details.pos, details.sentence, details.sentenceBn);
+        const posLabel = details.pos ? ` (${details.pos})` : '';
+        showToast(`যুক্ত হয়েছে: "${word}"${posLabel} - ${details.meaning}`, '✅');
+      } catch (err) {
+        console.error('Translation error:', err);
+        openAddManualModal(word, '');
+      } finally {
+        hideSelectionPill();
+      }
+    }
+
+    // --- Translation, Meaning, Part of Speech (POS) & Sentence Engine ---
+    async function getWordDetails(word, mode) {
+      const normalizedWord = word.trim().toLowerCase();
+      const rawTrimmed = word.trim();
+
+      // 1. Check Offline Curated Dictionary First (instant, 100% reliable)
+      if (offlineDictionary[normalizedWord]) {
+        return { ...offlineDictionary[normalizedWord] };
+      }
+      if (offlineDictionary[rawTrimmed]) {
+        return { ...offlineDictionary[rawTrimmed] };
+      }
+
+      const sl = mode === 'en-to-bn' ? 'en' : 'bn';
+      const tl = mode === 'en-to-bn' ? 'bn' : 'en';
+
+      let meaning = '';
+      let pos = '';
+      let sentence = '';
+      let sentenceBn = '';
+
+      // 2. Query Google Translate Client API (GTX) for primary meaning & part of speech
+      try {
+        const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&dt=bd&dt=rm&q=${encodeURIComponent(word)}`;
+        const res = await fetch(gtxUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data[0] && data[0][0] && data[0][0][0]) {
+            meaning = data[0][0][0].trim();
+          }
+          // Extract POS from data[1] if available
+          if (data && data[1] && Array.isArray(data[1])) {
+            const posList = data[1].map(group => group[0]).filter(Boolean);
+            if (posList.length > 0) {
+              pos = posList.slice(0, 2).join(' / ');
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Google Translate API error:', e);
+      }
+
+      // 3. For English words, query Free Dictionary API for authentic POS and real example sentence
+      if (mode === 'en-to-bn') {
+        try {
+          const dictUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+          const dictRes = await fetch(dictUrl);
+          if (dictRes.ok) {
+            const dictData = await dictRes.json();
+            if (Array.isArray(dictData) && dictData[0]) {
+              const entry = dictData[0];
+              if (!pos && entry.meanings?.[0]?.partOfSpeech) {
+                pos = entry.meanings[0].partOfSpeech;
+              }
+              // Extract the first example sentence available
+              for (const m of entry.meanings || []) {
+                for (const d of m.definitions || []) {
+                  if (d.example) {
+                    sentence = d.example;
+                    break;
+                  }
+                }
+                if (sentence) break;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Free Dictionary API error:', e);
+        }
+      }
+
+      // 4. If an English example sentence was found, translate it to Bengali
+      if (sentence && !sentenceBn) {
+        try {
+          const sentTrUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=bn&dt=t&q=${encodeURIComponent(sentence)}`;
+          const sentRes = await fetch(sentTrUrl);
+          if (sentRes.ok) {
+            const sentData = await sentRes.json();
+            if (sentData && sentData[0] && sentData[0][0] && sentData[0][0][0]) {
+              sentenceBn = sentData[0][0][0].trim();
+            }
+          }
+        } catch (e) {
+          console.warn('Sentence translation failed:', e);
+        }
+      }
+
+      // 5. If no sentence found, create an authentic contextual sentence
+      if (!sentence) {
+        if (mode === 'en-to-bn') {
+          const p = (pos || '').toLowerCase();
+          if (p.includes('verb')) {
+            sentence = `We must learn to ${word} with great dedication.`;
+            sentenceBn = `আমাদের নিষ্ঠার সাথে ${meaning ? meaning.split('/')[0].trim() : word} করতে হবে।`;
+          } else if (p.includes('adj')) {
+            sentence = `This is a truly ${word} creation of nature.`;
+            sentenceBn = `এটি প্রকৃতির সত্যিই এক সুন্দর সৃষ্টি।`;
+          } else {
+            sentence = `The value of ${word} is universally recognized.`;
+            sentenceBn = `${meaning ? meaning.split('/')[0].trim() : word} এর গুরুত্ব সর্বজনস্বীকৃত।`;
+          }
+        } else {
+          sentence = `The essence of ${meaning || word} brings true peace to life.`;
+          sentenceBn = `${word} এর প্রকৃত তাৎপর্য জীবনে অপার শান্তি বয়ে আনে।`;
+        }
+      }
+
+      // 6. Ensure default POS if still unassigned
+      if (!pos) {
+        pos = 'noun';
+      }
+
+      // 7. If meaning was not found, fallback to prompt
+      if (!meaning) {
+        meaning = prompt(`Could not auto-translate "${word}". Please type its meaning:`) || 'Meaning not available';
+      }
+
+      return { meaning, pos, sentence, sentenceBn };
+    }
+
+    async function getWordMeaning(word, mode) {
+      const details = await getWordDetails(word, mode);
+      return details.meaning;
+    }
+
+    // --- Word Storage & CRUD ---
+    function loadStoredWords() {
+      try {
+        const stored = localStorage.getItem('vocab_craft_words');
+        if (stored) {
+          words = JSON.parse(stored);
+        } else {
+          // Initial starter words showcasing Work, Life, Perseverance, and সৌন্দর্য
+          words = [
+            {
+              id: 'init-1',
+              word: 'Work',
+              meaning: 'কাজ / পরিশ্রম',
+              pos: 'noun / verb',
+              sentence: 'Hard work leads to genuine achievement.',
+              sentenceBn: 'কঠোর পরিশ্রম প্রকৃত অর্জনের দিকে নিয়ে যায়।',
+              mode: 'en-to-bn',
+              date: new Date().toLocaleDateString()
+            },
+            {
+              id: 'init-2',
+              word: 'Life',
+              meaning: 'জীবন',
+              pos: 'noun',
+              sentence: 'Life is a precious journey full of experiences.',
+              sentenceBn: 'জীবন অভিজ্ঞতায় ভরা এক মূল্যবান যাত্রা।',
+              mode: 'en-to-bn',
+              date: new Date().toLocaleDateString()
+            },
+            {
+              id: 'init-3',
+              word: 'Perseverance',
+              meaning: 'অধ্যবসায় / অবিচল নিষ্ঠা',
+              pos: 'noun',
+              sentence: 'Through perseverance, she achieved her highest goals.',
+              sentenceBn: 'অধ্যবসায়ের মাধ্যমে তিনি তার সর্বোচ্চ লক্ষ্য অর্জন করেছিলেন।',
+              mode: 'en-to-bn',
+              date: new Date().toLocaleDateString()
+            },
+            {
+              id: 'init-4',
+              word: 'সৌন্দর্য',
+              meaning: 'Beauty / Splendor',
+              pos: 'noun',
+              sentence: 'The quiet beauty of nature restores inner peace.',
+              sentenceBn: 'প্রকৃতির শান্ত সৌন্দর্য মনের ভেতরের শান্তি ফিরিয়ে দেয়।',
+              mode: 'bn-to-en',
+              date: new Date().toLocaleDateString()
+            }
+          ];
+          saveToLocalStorage();
+        }
+      } catch (e) {
+        words = [];
+      }
+      renderWordList();
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('vocab_craft_words', JSON.stringify(words));
+      updateExportButtonsState();
+    }
+
+    function saveWord(wordText, meaningText, mode, posText = '', sentenceText = '', sentenceBnText = '') {
+      const existingIndex = words.findIndex(w => w.word.toLowerCase() === wordText.toLowerCase());
+      if (existingIndex !== -1) {
+        words[existingIndex].meaning = meaningText;
+        if (posText) words[existingIndex].pos = posText;
+        if (sentenceText) words[existingIndex].sentence = sentenceText;
+        if (sentenceBnText) words[existingIndex].sentenceBn = sentenceBnText;
+        words[existingIndex].date = new Date().toLocaleDateString();
+        const updated = words.splice(existingIndex, 1)[0];
+        words.unshift(updated);
+      } else {
+        const newWord = {
+          id: 'w_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          word: wordText,
+          meaning: meaningText,
+          pos: posText || '',
+          sentence: sentenceText || '',
+          sentenceBn: sentenceBnText || '',
+          mode: mode || currentMode,
+          date: new Date().toLocaleDateString()
+        };
+        words.unshift(newWord);
+      }
+      saveToLocalStorage();
+      renderWordList();
+    }
+
+    function deleteWord(id) {
+      words = words.filter(w => w.id !== id);
+      saveToLocalStorage();
+      renderWordList();
+      showToast('Word removed', '🗑️');
+    }
+
+    function clearAllWords() {
+      if (words.length === 0) return;
+      if (confirm('Are you sure you want to clear all words from your learning list?')) {
+        words = [];
+        saveToLocalStorage();
+        renderWordList();
+        showToast('All words cleared', '🧹');
+      }
+    }
+
+    // --- Pronunciation Speech Synthesis ---
+    function speakWord(text, mode) {
+      if (!('speechSynthesis' in window)) {
+        showToast('Text-to-speech is not supported in this browser', '⚠️');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = (mode === 'bn-to-en' || isBengaliText(text)) ? 'bn-BD' : 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function isBengaliText(str) {
+      return /[\u0980-\u09FF]/.test(str);
+    }
+
+    // --- Search & Filtering ---
+    function handleSearchWords(query) {
+      activeFilter = query.trim().toLowerCase();
+      renderWordList();
+    }
+
+    // --- Vocabulary Line Formatter with POS (P) and Sentence (S) Toggles ---
+    // Example without P and S:
+    // 1. Work - কাজ।
+    // 2. Life - জীবন।
+    // Example with P:
+    // 1. Work (noun / verb) - কাজ।
+    // Example with S:
+    // 1. Work - কাজ।
+    //    Sentence: Hard work leads to genuine achievement. (কঠোর পরিশ্রম প্রকৃত অর্জনের দিকে নিয়ে যায়।)
+    function formatVocabLine(item, index, includePos = showPartOfSpeech, includeSentence = showSentences) {
+      let wordLabel = item.word;
+      if (includePos && item.pos) {
+        wordLabel += ` (${item.pos})`;
+      }
+
+      let meaning = (item.meaning || '').trim();
+      if (!meaning.endsWith('।') && !meaning.endsWith('.') && !meaning.endsWith('!') && !meaning.endsWith('?')) {
+        meaning += isBengaliText(meaning) ? '।' : '.';
+      }
+
+      const mainLine = `${index + 1}. ${wordLabel} - ${meaning}`;
+
+      if (includeSentence && item.sentence) {
+        let sentText = `   Sentence: ${item.sentence}`;
+        if (item.sentenceBn) {
+          sentText += ` (${item.sentenceBn})`;
+        }
+        return `${mainLine}\n${sentText}`;
+      }
+
+      return mainLine;
+    }
+
+    function formatPlainVocabLine(item, index) {
+      return formatVocabLine(item, index, showPartOfSpeech, showSentences);
+    }
+
+    // --- Word List Rendering ---
+    function renderWordList() {
+      const filteredWords = words.filter(item => {
+        if (!activeFilter) return true;
+        return item.word.toLowerCase().includes(activeFilter) ||
+               item.meaning.toLowerCase().includes(activeFilter) ||
+               (item.pos && item.pos.toLowerCase().includes(activeFilter));
+      });
+
+      savedCountBadge.textContent = words.length;
+
+      if (filteredWords.length === 0) {
+        wordListContainer.innerHTML = '';
+        emptyListState.classList.remove('hidden');
+        if (words.length > 0 && activeFilter) {
+          emptyListState.querySelector('h4').textContent = 'No matching words found';
+          emptyListState.querySelector('p').textContent = `No words matched "${activeFilter}". Clear search to view all.`;
+        } else {
+          emptyListState.querySelector('h4').textContent = 'No words collected yet';
+          emptyListState.querySelector('p').textContent = 'Highlight any word with your mouse from the left passage, or click below to enter one manually.';
+        }
+      } else {
+        emptyListState.classList.add('hidden');
+
+        // Check if user selected Plain Text / Document View
+        if (listViewMode === 'plain') {
+          wordListContainer.innerHTML = `
+            <div class="p-4 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-sm sm:text-base leading-relaxed font-medium text-slate-900 dark:text-slate-100 divide-y divide-slate-100 dark:divide-slate-800/60 bengali-text">
+              ${filteredWords.map((item, index) => {
+                let wordLabel = escapeHtml(item.word);
+                if (showPartOfSpeech && item.pos) {
+                  wordLabel += ` <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold font-sans">(${escapeHtml(item.pos)})</span>`;
+                }
+                let meaning = (item.meaning || '').trim();
+                if (!meaning.endsWith('।') && !meaning.endsWith('.') && !meaning.endsWith('!') && !meaning.endsWith('?')) {
+                  meaning += isBengaliText(meaning) ? '।' : '.';
+                }
+
+                return `
+                  <div class="py-2.5 flex items-start justify-between group">
+                    <div class="break-words select-all flex-1 pr-2">
+                      <div>
+                        <span class="font-bold text-slate-400 dark:text-slate-500 mr-1.5">${index + 1}.</span>
+                        <span class="font-bold text-slate-900 dark:text-white">${wordLabel}</span>
+                        <span class="text-slate-400 mx-1">-</span>
+                        <span class="bengali-text text-emerald-800 dark:text-emerald-300">${escapeHtml(meaning)}</span>
+                      </div>
+                      ${showSentences && item.sentence ? `
+                        <div class="mt-1 pl-5 text-xs text-slate-600 dark:text-slate-400 leading-normal font-normal">
+                          <span class="font-semibold text-emerald-700 dark:text-emerald-400">Sentence:</span> "${escapeHtml(item.sentence)}"
+                          ${item.sentenceBn ? `<span class="bengali-text ml-1 text-slate-500 dark:text-slate-400">(${escapeHtml(item.sentenceBn)})</span>` : ''}
+                        </div>
+                      ` : ''}
+                    </div>
+                    <div class="opacity-0 group-hover:opacity-100 transition flex items-center gap-1 pl-2 shrink-0">
+                      <button type="button" onclick="speakWord('${escapeJsString(item.word)}', '${item.mode}')" title="Listen pronunciation" class="p-1 text-slate-400 hover:text-emerald-500">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                      </button>
+                      <button type="button" onclick="editWord('${item.id}')" title="Edit meaning" class="p-1 text-slate-400 hover:text-emerald-500">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                      </button>
+                      <button type="button" onclick="deleteWord('${item.id}')" title="Delete word" class="p-1 text-slate-400 hover:text-rose-500">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        } else {
+          // Standard Cards View
+          wordListContainer.innerHTML = filteredWords.map((item, index) => {
+            const isBengaliWord = isBengaliText(item.word);
+            const isBengaliMeaning = isBengaliText(item.meaning);
+
+            return `
+              <div class="group relative flex items-start justify-between gap-3 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 hover:bg-white dark:bg-slate-800/40 dark:hover:bg-slate-800/80 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-800 transition-all duration-200">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap mb-1">
+                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500 font-mono">#${index + 1}</span>
+                    <span class="text-sm font-bold text-slate-900 dark:text-white ${isBengaliWord ? 'bengali-text' : ''}">
+                      ${escapeHtml(item.word)}
+                    </span>
+                    ${showPartOfSpeech && item.pos ? `
+                      <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        ${escapeHtml(item.pos)}
+                      </span>
+                    ` : ''}
+                    <button type="button" onclick="speakWord('${escapeJsString(item.word)}', '${item.mode}')" title="Listen pronunciation" class="text-slate-400 hover:text-emerald-500 transition p-0.5">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      </svg>
+                    </button>
+                    <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-700/60 text-slate-600 dark:text-slate-400">
+                      ${item.mode === 'en-to-bn' ? 'EN→BN' : 'BN→EN'}
+                    </span>
+                  </div>
+                  
+                  <p class="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 leading-snug break-words ${isBengaliMeaning ? 'bengali-text' : ''}">
+                    ${escapeHtml(item.meaning)}
+                  </p>
+
+                  ${showSentences && item.sentence ? `
+                    <div class="mt-2 p-2 rounded-lg bg-emerald-50/70 dark:bg-slate-900/60 border border-emerald-100 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
+                      <div class="flex items-start gap-1.5">
+                        <span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">💡</span>
+                        <div>
+                          <p class="font-medium text-slate-800 dark:text-slate-200">"${escapeHtml(item.sentence)}"</p>
+                          ${item.sentenceBn ? `
+                            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400 bengali-text">
+                              ${escapeHtml(item.sentenceBn)}
+                            </p>
+                          ` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  ` : ''}
+                  
+                  <div class="mt-1.5 flex items-center gap-3 text-[10px] text-slate-400 dark:text-slate-500">
+                    <span>${item.date || 'Today'}</span>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">
+                  <button type="button" onclick="editWord('${item.id}')" title="Edit meaning & sentence" class="p-1 rounded-md text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-700 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button type="button" onclick="deleteWord('${item.id}')" title="Delete word" class="p-1 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-slate-700 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      updateExportButtonsState();
+    }
+
+    function updateExportButtonsState() {
+      const isDisabled = words.length === 0;
+      downloadTxtBtn.disabled = isDisabled;
+      downloadImgBtn.disabled = isDisabled;
+    }
+
+    // --- Dynamic File Naming Formatter: [Date] ([Time]).ext ---
+    // Strict requirement: [Date] ([Time]).ext -> Example: 11-10-2026 (23-15-00).txt
+    function generateDynamicFilename(extension) {
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+
+      return `${day}-${month}-${year} (${hours}-${minutes}-${seconds}).${extension}`;
+    }
+
+    // --- TXT Export (Normal Word File / Text Format without extra layers) ---
+    // Includes POS if (P) is active; Includes Sentences if (S) is active
+    function downloadAsTxt() {
+      if (words.length === 0) {
+        showToast('No words to download!', '⚠️');
+        return;
+      }
+
+      const filename = generateDynamicFilename('txt');
+
+      // Export format strictly respects open/closed states of P and S
+      const formattedLines = words.map((item, idx) => formatVocabLine(item, idx, showPartOfSpeech, showSentences));
+      const content = formattedLines.join('\n') + '\n';
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      const statusNote = `Downloaded: ${filename} (P: ${showPartOfSpeech ? 'ON' : 'OFF'}, S: ${showSentences ? 'ON' : 'OFF'})`;
+      showToast(statusNote, '📄');
+    }
+
+    // --- Image Export via html2canvas (Clean Document Page without extra layers/cards) ---
+    // Includes POS if (P) is active; Includes Sentences if (S) is active
+    async function downloadAsImage() {
+      if (words.length === 0) {
+        showToast('No words to export!', '⚠️');
+        return;
+      }
+
+      if (typeof html2canvas === 'undefined') {
+        showToast('Image exporter library is loading, please try again.', '⚠️');
+        return;
+      }
+
+      const spinner = document.getElementById('imgBtnSpinner');
+      const icon = document.getElementById('imgBtnIcon');
+      const text = document.getElementById('imgBtnText');
+
+      spinner.classList.remove('hidden');
+      icon.classList.add('hidden');
+      text.textContent = 'Rendering...';
+      downloadImgBtn.disabled = true;
+
+      const filename = generateDynamicFilename('png');
+
+      // Create or reuse clean document sheet container (pure text document page, word file style)
+      let cleanDoc = document.getElementById('cleanDocumentExportBox');
+      if (!cleanDoc) {
+        cleanDoc = document.createElement('div');
+        cleanDoc.id = 'cleanDocumentExportBox';
+        document.body.appendChild(cleanDoc);
+      }
+
+      // Document style: clean white sheet, crisp text, no cards, no borders, no extra layers
+      cleanDoc.style.position = 'fixed';
+      cleanDoc.style.left = '-9999px';
+      cleanDoc.style.top = '0';
+      cleanDoc.style.width = '780px';
+      cleanDoc.style.padding = '48px 56px';
+      cleanDoc.style.backgroundColor = '#ffffff';
+      cleanDoc.style.color = '#111827';
+      cleanDoc.style.fontFamily = "'Hind Siliguri', 'Inter', -apple-system, sans-serif";
+      cleanDoc.style.display = 'block';
+      cleanDoc.style.boxSizing = 'border-box';
+
+      // Lines rendered one below the other in normal text format
+      const itemsHtml = words.map((item, idx) => {
+        let wordPart = escapeHtml(item.word);
+        if (showPartOfSpeech && item.pos) {
+          wordPart += ` <span style="color: #047857; font-size: 15px; font-weight: 600;">(${escapeHtml(item.pos)})</span>`;
+        }
+
+        let meaning = (item.meaning || '').trim();
+        if (!meaning.endsWith('।') && !meaning.endsWith('.') && !meaning.endsWith('!') && !meaning.endsWith('?')) {
+          meaning += isBengaliText(meaning) ? '।' : '.';
+        }
+
+        const mainLineHtml = `
+          <div style="font-size: 19px; line-height: 1.8; color: #111827; font-weight: 500; font-family: 'Hind Siliguri', 'Inter', sans-serif;">
+            <span style="font-weight: 700; color: #374151;">${idx + 1}.</span> <strong>${wordPart}</strong> - <span style="font-family: 'Hind Siliguri', sans-serif;">${escapeHtml(meaning)}</span>
+          </div>
+        `;
+
+        let sentenceHtml = '';
+        if (showSentences && item.sentence) {
+          sentenceHtml = `
+            <div style="font-size: 14px; line-height: 1.5; color: #4b5563; margin-left: 24px; margin-top: 2px; margin-bottom: 6px; font-family: 'Hind Siliguri', 'Inter', sans-serif;">
+              <span style="font-weight: 600; color: #059669;">Sentence:</span> "${escapeHtml(item.sentence)}"
+              ${item.sentenceBn ? `<span style="color: #6b7280; font-family: 'Hind Siliguri', sans-serif;">(${escapeHtml(item.sentenceBn)})</span>` : ''}
+            </div>
+          `;
+        }
+
+        return `
+          <div style="margin-bottom: ${showSentences && item.sentence ? '12px' : '6px'};">
+            ${mainLineHtml}
+            ${sentenceHtml}
+          </div>
+        `;
+      }).join('');
+
+      cleanDoc.innerHTML = `
+        <div style="width: 100%; font-family: 'Hind Siliguri', 'Inter', sans-serif;">
+          ${itemsHtml}
+        </div>
+      `;
+
+      try {
+        const canvas = await html2canvas(cleanDoc, {
+          scale: 2, // High resolution crisp export
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        const statusNote = `Downloaded: ${filename} (P: ${showPartOfSpeech ? 'ON' : 'OFF'}, S: ${showSentences ? 'ON' : 'OFF'})`;
+        showToast(statusNote, '🖼️');
+      } catch (err) {
+        console.error('html2canvas capture error:', err);
+        showToast('Could not render image. Please try again.', '❌');
+      } finally {
+        cleanDoc.style.display = 'none';
+        spinner.classList.add('hidden');
+        icon.classList.remove('hidden');
+        text.textContent = 'Download Image';
+        downloadImgBtn.disabled = false;
+      }
+    }
+
+    // --- Modal Management (Add / Edit Word) ---
+    const wordModal = document.getElementById('wordModal');
+    const modalWordInput = document.getElementById('modalWordInput');
+    const modalMeaningInput = document.getElementById('modalMeaningInput');
+    const modalPosInput = document.getElementById('modalPosInput');
+    const modalSentenceInput = document.getElementById('modalSentenceInput');
+    const modalSentenceBnInput = document.getElementById('modalSentenceBnInput');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalEditIndex = document.getElementById('modalEditIndex');
+
+    function openAddManualModal(defaultWord = '', defaultMeaning = '') {
+      modalEditIndex.value = '-1';
+      modalTitle.textContent = 'Add New Word';
+      modalWordInput.value = defaultWord;
+      modalMeaningInput.value = defaultMeaning;
+      if (modalPosInput) modalPosInput.value = '';
+      if (modalSentenceInput) modalSentenceInput.value = '';
+      if (modalSentenceBnInput) modalSentenceBnInput.value = '';
+      wordModal.classList.remove('hidden');
+      if (defaultWord) {
+        modalMeaningInput.focus();
+      } else {
+        modalWordInput.focus();
+      }
+    }
+
+    function editWord(id) {
+      const idx = words.findIndex(w => w.id === id);
+      if (idx === -1) return;
+      const target = words[idx];
+
+      modalEditIndex.value = idx;
+      modalTitle.textContent = `Edit Details for "${target.word}"`;
+      modalWordInput.value = target.word;
+      modalMeaningInput.value = target.meaning;
+      if (modalPosInput) modalPosInput.value = target.pos || '';
+      if (modalSentenceInput) modalSentenceInput.value = target.sentence || '';
+      if (modalSentenceBnInput) modalSentenceBnInput.value = target.sentenceBn || '';
+      wordModal.classList.remove('hidden');
+      modalMeaningInput.focus();
+    }
+
+    function closeWordModal() {
+      wordModal.classList.add('hidden');
+    }
+
+    async function fetchMeaningForModal() {
+      const word = modalWordInput.value.trim();
+      if (!word) {
+        alert('Please enter a word first!');
+        return;
+      }
+      modalMeaningInput.placeholder = 'Fetching details...';
+      try {
+        const details = await getWordDetails(word, currentMode);
+        modalMeaningInput.value = details.meaning || '';
+        if (modalPosInput) modalPosInput.value = details.pos || '';
+        if (modalSentenceInput) modalSentenceInput.value = details.sentence || '';
+        if (modalSentenceBnInput) modalSentenceBnInput.value = details.sentenceBn || '';
+        showToast('Word details fetched!', '✨');
+      } catch (e) {
+        modalMeaningInput.placeholder = 'Enter meaning manually...';
+      }
+    }
+
+    function handleModalSubmit(e) {
+      e.preventDefault();
+      const wordText = modalWordInput.value.trim();
+      const meaningText = modalMeaningInput.value.trim();
+      const posText = modalPosInput ? modalPosInput.value.trim() : '';
+      const sentenceText = modalSentenceInput ? modalSentenceInput.value.trim() : '';
+      const sentenceBnText = modalSentenceBnInput ? modalSentenceBnInput.value.trim() : '';
+      const editIdx = parseInt(modalEditIndex.value, 10);
+
+      if (!wordText || !meaningText) return;
+
+      if (editIdx >= 0 && editIdx < words.length) {
+        words[editIdx].word = wordText;
+        words[editIdx].meaning = meaningText;
+        words[editIdx].pos = posText;
+        words[editIdx].sentence = sentenceText;
+        words[editIdx].sentenceBn = sentenceBnText;
+        saveToLocalStorage();
+        renderWordList();
+        showToast(`Updated "${wordText}"`, '✏️');
+      } else {
+        saveWord(wordText, meaningText, currentMode, posText, sentenceText, sentenceBnText);
+        showToast(`Added "${wordText}"`, '✅');
+      }
+
+      closeWordModal();
+    }
+
+    // --- Toast Notifications ---
+    let toastTimeout;
+    function showToast(msg, icon = '✨') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.textContent = msg;
+      toastIcon.textContent = icon;
+
+      toast.classList.remove('translate-y-12', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-12', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    // Helper functions for safe rendering
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function escapeJsString(str) {
+      return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+  </script>
+
+</body>
+</html>
